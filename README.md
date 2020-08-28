@@ -1,4 +1,4 @@
-# iTterm2
+# iTerm2
 
 ### Go library for automating iTerm2 Scripts
 
