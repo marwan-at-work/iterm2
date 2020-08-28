@@ -6,6 +6,15 @@
 
 go get marwan.io/iterm2
 
+### Usage
+
+```golang
+app, err := iterm2.NewApp()
+handle(err)
+defer app.Close()
+// use app to create or list windows, tabs, and sessions and send various commands to the terminal.
+```
+
 ### Progress
 
 This is currently a work in progress and it is a subset of what the iTerm2 WebSocket protocol provides.
