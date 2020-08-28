@@ -12,6 +12,13 @@ import (
 type Session interface {
 	SendText(s string) error
 	Activate(selectTab, orderWindowFront bool) error
+	SplitPane(opts SplitPaneOptions) (Session, error)
+}
+
+// SplitPaneOptions for customizing the new pane session.
+// More options can be added here as needed
+type SplitPaneOptions struct {
+	Vertical bool
 }
 
 type session struct {
@@ -56,4 +63,30 @@ func (s *session) Activate(selectTab, orderWindowFront bool) error {
 		return fmt.Errorf("unexpected status for activate request: %s", status)
 	}
 	return nil
+}
+
+func (s *session) SplitPane(opts SplitPaneOptions) (Session, error) {
+	direction := api.SplitPaneRequest_HORIZONTAL.Enum()
+	if opts.Vertical {
+		direction = api.SplitPaneRequest_VERTICAL.Enum()
+	}
+	resp, err := s.c.Call(&api.ClientOriginatedMessage{
+		Submessage: &api.ClientOriginatedMessage_SplitPaneRequest{
+			SplitPaneRequest: &api.SplitPaneRequest{
+				Session:        &s.id,
+				SplitDirection: direction,
+			},
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error splitting pane: %w", err)
+	}
+	spResp := resp.GetSplitPaneResponse()
+	if len(spResp.GetSessionId()) < 1 {
+		return nil, fmt.Errorf("expected at least one new session in split pane")
+	}
+	return &session{
+		c:  s.c,
+		id: spResp.GetSessionId()[0],
+	}, nil
 }
