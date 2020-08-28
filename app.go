@@ -14,6 +14,7 @@ type App interface {
 
 	CreateWindow() (Window, error)
 	ListWindows() ([]Window, error)
+	SelectMenuItem(item string) error
 }
 
 // NewApp establishes a connection
@@ -61,7 +62,6 @@ func (a *app) ListWindows() ([]Window, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not list sessions: %w", err)
 	}
-	fmt.Println(resp.GetListSessionsResponse().GetBuriedSessions())
 	for _, w := range resp.GetListSessionsResponse().GetWindows() {
 		list = append(list, &window{
 			c:  a.c,
@@ -77,4 +77,21 @@ func (a *app) Close() error {
 
 func str(s string) *string {
 	return &s
+}
+
+func (a *app) SelectMenuItem(item string) error {
+	resp, err := a.c.Call(&api.ClientOriginatedMessage{
+		Submessage: &api.ClientOriginatedMessage_MenuItemRequest{
+			MenuItemRequest: &api.MenuItemRequest{
+				Identifier: &item,
+			},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("error selecting menu item %q: %w", item, err)
+	}
+	if resp.GetMenuItemResponse().GetStatus() != api.MenuItemResponse_OK {
+		return fmt.Errorf("menu item %q returned unexpected status: %q", item, resp.GetMenuItemResponse().GetStatus().String())
+	}
+	return nil
 }
