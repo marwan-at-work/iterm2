@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/proto"
@@ -27,7 +30,18 @@ func New() (*Client, error) {
 	if cookie := os.Getenv("ITERM2_COOKIE"); cookie != "" {
 		h.Set("x-iterm2-cookie", cookie)
 	}
-	c, resp, err := websocket.DefaultDialer.Dial("ws://localhost:1912", h)
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, fmt.Errorf("os.UserHomeDir: %w", err)
+	}
+	d := &websocket.Dialer{
+		NetDial: func(network, addr string) (net.Conn, error) {
+			return net.Dial("unix", filepath.Join(homeDir, "/Library/Application Support/iTerm2/private/socket"))
+		},
+		HandshakeTimeout: 45 * time.Second,
+		Subprotocols:     []string{"api.iterm2.com"},
+	}
+	c, resp, err := d.Dial("ws://localhost", h)
 	if err != nil && resp != nil {
 		b, _ := ioutil.ReadAll(resp.Body)
 		return nil, fmt.Errorf("error connecting to iTerm2: %v - body: %s", err, b)
