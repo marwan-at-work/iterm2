@@ -18,16 +18,26 @@ func main() {
 				Name:        "install",
 				Usage:       "goiterm install <go binary name>",
 				Description: "Installs your plugin to the iTerm app",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "name",
+						Usage: "alternative plugin name instead of the binary",
+					},
+				},
 				Action: func(c *cli.Context) error {
 					bin := c.Args().First()
 					if bin == "" {
 						return cli.NewExitError("must pass go binary as first argument", 1)
 					}
+					appName := c.String("name")
+					if appName == "" {
+						appName = bin
+					}
 					homedir, err := os.UserHomeDir()
 					if err != nil {
 						return fmt.Errorf("os.UserHomeDir: %w", err)
 					}
-					p := filepath.Join(homedir, "/Library/Application Support/iTerm2/Scripts/", bin+".py")
+					p := filepath.Join(homedir, "/Library/Application Support/iTerm2/Scripts/", appName+".py")
 					f := fmt.Sprintf(pyFile, bin)
 					err = ioutil.WriteFile(p, []byte(f), 0666)
 					if err != nil {

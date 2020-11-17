@@ -18,9 +18,14 @@ type App interface {
 }
 
 // NewApp establishes a connection
-// with iTerm2 and returns an App
-func NewApp() (App, error) {
-	c, err := client.New()
+// with iTerm2 and returns an App.
+// Name is an optional parameter that
+// can be used to register your application
+// name with iTerm2 so that it doesn't
+// require explicit permissions every
+// time you run the plugin.
+func NewApp(name string) (App, error) {
+	c, err := client.New(name)
 	if err != nil {
 		return nil, err
 	}

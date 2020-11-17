@@ -9,9 +9,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/andybrewer/mack"
 	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/proto"
 	"marwan.io/iterm2/api"
@@ -22,13 +24,24 @@ import (
 // Callers must call the Close() method when done.
 // The cookie parameter is optional. If provided,
 // it will bypass script authentication prompts.
-func New() (*Client, error) {
+func New(appName string) (*Client, error) {
 	h := http.Header{}
 	h.Set("origin", "ws://localhost/")
 	h.Set("x-iterm2-library-version", "go 3.6")
 	h.Set("x-iterm2-disable-auth-ui", "true")
 	if cookie := os.Getenv("ITERM2_COOKIE"); cookie != "" {
 		h.Set("x-iterm2-cookie", cookie)
+	} else {
+		resp, err := mack.Tell("iTerm2", fmt.Sprintf("request cookie and key for app named %q", appName))
+		if err != nil {
+			return nil, fmt.Errorf("AppleScript/tell: %w", err)
+		}
+		fields := strings.Fields(resp)
+		if len(fields) != 2 {
+			return nil, fmt.Errorf("incorrect field format: %q", resp)
+		}
+		h.Set("x-iterm2-cookie", fields[0])
+		h.Set("x-iterm2-key", fields[1])
 	}
 	homeDir, err := os.UserHomeDir()
 	if err != nil {

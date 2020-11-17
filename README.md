@@ -9,11 +9,21 @@ go get marwan.io/iterm2
 ### Usage
 
 ```golang
-app, err := iterm2.NewApp()
-handle(err)
-defer app.Close()
-// use app to create or list windows, tabs, and sessions and send various commands to the terminal.
+package main
+
+func main() {
+    app, err := iterm2.NewApp("MyCoolPlugin")
+    handle(err)
+    defer app.Close()
+    // use app to create or list windows, tabs, and sessions and send various commands to the terminal.
+}
 ```
+
+### How do I actually run the script?
+
+- Since you will be using this library in a "main" program, you can literally just run the Go program through "go run" or install your program/binary globally through "go install" and then run it from any terminal.
+
+- A nicer way to run the script is to "register" the plugin with iTerm2 so you can run it from iTerm's command pallette (cmd+shift+o). This means you won't need a terminal tab open or to remember what the plugin name is. See the following section on how to do that:
 
 ### Installing the plugin into iTerm2
 
