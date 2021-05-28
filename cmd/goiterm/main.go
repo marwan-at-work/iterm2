@@ -17,7 +17,7 @@ func main() {
 			{
 				Name:        "install",
 				Usage:       "goiterm install <go binary name>",
-				Description: "Installs your plugin to the iTerm app",
+				Description: "Installs your plugin to iTerm2",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "name",
@@ -27,7 +27,7 @@ func main() {
 				Action: func(c *cli.Context) error {
 					bin := c.Args().First()
 					if bin == "" {
-						return cli.NewExitError("must pass go binary as first argument", 1)
+						return cli.Exit("must pass go binary as first argument", 1)
 					}
 					appName := c.String("name")
 					if appName == "" {

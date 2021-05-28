@@ -69,7 +69,7 @@ func (w *window) ListTabs() ([]Tab, error) {
 }
 
 func (w *window) SetTitle(s string) error {
-	w.c.Call(&api.ClientOriginatedMessage{
+	_, err := w.c.Call(&api.ClientOriginatedMessage{
 		Submessage: &api.ClientOriginatedMessage_InvokeFunctionRequest{
 			InvokeFunctionRequest: &api.InvokeFunctionRequest{
 				Invocation: str(fmt.Sprintf(`iterm2.set_title(title: "%s")`, s)),
@@ -81,5 +81,5 @@ func (w *window) SetTitle(s string) error {
 			},
 		},
 	})
-	return nil
+	return err
 }
