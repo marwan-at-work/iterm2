@@ -25,6 +25,8 @@ func main() {
 
 - A nicer way to run the script is to "register" the plugin with iTerm2 so you can run it from iTerm's command pallette (cmd+shift+o). This means you won't need a terminal tab open or to remember what the plugin name is. See the following section on how to do that:
 
+- Ensure you enable the Python API: https://iterm2.com/python-api-auth.html
+
 ### Installing the plugin into iTerm2
 
 1. Install your program into your local PATH (for example running `go install`)
