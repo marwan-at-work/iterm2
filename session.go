@@ -13,6 +13,7 @@ type Session interface {
 	SendText(s string) error
 	Activate(selectTab, orderWindowFront bool) error
 	SplitPane(opts SplitPaneOptions) (Session, error)
+	GetSessionID() string
 }
 
 // SplitPaneOptions for customizing the new pane session.
@@ -89,4 +90,8 @@ func (s *session) SplitPane(opts SplitPaneOptions) (Session, error) {
 		c:  s.c,
 		id: spResp.GetSessionId()[0],
 	}, nil
+}
+
+func (s *session) GetSessionID() string {
+	return s.id
 }
