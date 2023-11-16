@@ -115,6 +115,16 @@ message InvokeFunctionRequest {
   message App {
   }
   message Method {
+    // The following methods are defined:
+    // window.set_title(title: String)
+    // session.set_name(name: String)
+    // session.run_tmux_command(command: String) throws  // Throws an exception if this is not a tmux session
+    // session.set_status_bar_component_unread_count(identifier: String, count: Int)
+    // session.stop_coprocess() -> Bool  // returns whether there was a coprocess to stop
+    // session.get_coprocess() -> String?  // returns the name of the command, or nil
+    // session.run_coprocess(commandLine: String, mute: Bool) -> Bool  // returns whether it attempted to start the coprocess. It'll fail only if there is already a coprocess.
+    // tab.set_title(title: String)
+    // tab.select_pane_in_direction(direction: String) throws -> String  // direction is 'left', 'right', 'above', or 'below'. If successful, it will return the ID of the newly active session. If you can't go that way, it returns null. Throws an exception if the direction is invalid.
     optional string receiver = 1;
   }
   oneof context {
@@ -782,6 +792,7 @@ message RPCRegistrationRequest {
     GENERIC = 1;
     SESSION_TITLE = 2;
     STATUS_BAR_COMPONENT = 3;
+    CONTEXT_MENU = 4;
   }
   optional Role role = 5 [default=GENERIC];
 
@@ -824,11 +835,23 @@ message RPCRegistrationRequest {
       optional float scale = 2;
     }
     repeated Icon icons = 7;
+
+    enum Format {
+      PLAIN_TEXT = 0;
+      HTML = 1;
+    }
+    optional Format format = 8 [default = PLAIN_TEXT];
+  }
+
+  message ContextMenuAttributes {
+    optional string display_name = 1;
+    optional string unique_identifier = 2;
   }
 
   oneof RoleSpecificAttributes {
     SessionTitleAttributes session_title_attributes = 7;
     StatusBarComponentAttributes status_bar_component_attributes = 8;
+    ContextMenuAttributes context_menu_attributes = 9;
   }
 
   optional string display_name = 6 [deprecated=true];
@@ -892,6 +915,9 @@ message KeystrokePattern {
 message KeystrokeMonitorRequest {
   // KeystrokeFilterRequest was split from this to make a more sensible API.
   repeated KeystrokePattern patterns_to_ignore = 1 [deprecated=true];
+
+  // If false, then only key-down events are sent. If true, key-down, key-up, and flags-changed events are sent.
+  optional bool advanced = 2;
 }
 
 message KeystrokeFilterRequest {
@@ -1016,6 +1042,14 @@ message KeystrokeNotification {
   repeated Modifiers modifiers = 3;
   optional int32 keyCode = 4;
   optional string session = 5;
+  enum Action {
+    // These are used for non-modifier keys.
+    KEY_DOWN = 0;
+    KEY_UP = 1;  // requires advanced=true in request
+    // This is used when only a modifier changes.
+    FLAGS_CHANGED = 2;  // requires advanced=true in request
+  }
+  optional Action action = 6;
 }
 
 message ScreenUpdateNotification {
@@ -1024,6 +1058,7 @@ message ScreenUpdateNotification {
 
 message PromptNotificationPrompt {
   optional string placeholder = 1;
+  optional GetPromptResponse prompt = 2;
 }
 
 message PromptNotificationCommandStart {
@@ -1463,6 +1498,7 @@ message ListSessionsResponse {
     optional string tab_id = 2;
     optional string tmux_window_id = 4;
     optional string tmux_connection_id = 5;
+    repeated SessionSummary minimized_sessions = 6;
   }
   repeated Window windows = 1;
   repeated SessionSummary buried_sessions = 2;
