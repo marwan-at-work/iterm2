@@ -114,12 +114,12 @@ func (c *Client) readWorker(ctx context.Context) {
 		}
 		c.mu.Lock()
 		ch, ok := c.rpcs[resp.GetId()]
+		delete(c.rpcs, resp.GetId())
 		c.mu.Unlock()
 		if !ok {
 			fmt.Fprintf(os.Stderr, "could not find call for %d: %v\n", resp.GetId(), &resp)
 			continue
 		}
-		delete(c.rpcs, resp.GetId())
 		ch <- &resp
 	}
 }
@@ -159,14 +159,4 @@ func (c *Client) Close() error {
 
 func id(i int64) *int64 {
 	return &i
-}
-
-func str(s string) *string {
-	return &s
-}
-
-func must(err error) {
-	if err != nil {
-		panic(err)
-	}
 }
