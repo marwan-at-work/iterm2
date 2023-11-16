@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -39,9 +38,9 @@ func main() {
 					}
 					p := filepath.Join(homedir, "/Library/Application Support/iTerm2/Scripts/", appName+".py")
 					f := fmt.Sprintf(pyFile, bin)
-					err = ioutil.WriteFile(p, []byte(f), 0666)
+					err = os.WriteFile(p, []byte(f), 0666)
 					if err != nil {
-						return fmt.Errorf("ioutil.WriteFile: %w", err)
+						return fmt.Errorf("os.WriteFile: %w", err)
 					}
 					return nil
 				},

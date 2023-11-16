@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"net"
 	"net/http"
@@ -19,17 +19,36 @@ import (
 	"marwan.io/iterm2/api"
 )
 
-// New returns a new websocket connection
-// that talks to the iTerm2 application.New
-// Callers must call the Close() method when done.
-// The cookie parameter is optional. If provided,
-// it will bypass script authentication prompts.
+// New returns a new websocket connection that talks to the iTerm2
+// application.New Callers must call the Close() method when done. The cookie
+// parameter is optional. If provided, it will bypass script authentication
+// prompts.
 func New(appName string) (*Client, error) {
+	// ITERM2_COOKIE is an an environment variable that's set on each terminal
+	// session. But it only seems to work the first time, then it gets
+	// invalidated. Therefore, we keep trying until it returns an error, then we
+	// try to generate a new cookie instead. See
+	// https://github.com/marwan-at-work/iterm2/issues/4
+	if cookie := os.Getenv("ITERM2_COOKIE"); cookie != "" {
+		client, err := newClient(appName, cookie)
+		if err == nil {
+			return client, nil
+		}
+	}
+	client, err := newClient(appName, "")
+	if err != nil {
+		return nil, err
+	}
+	return client, err
+}
+
+func newClient(appName, cookie string) (*Client, error) {
 	h := http.Header{}
 	h.Set("origin", "ws://localhost/")
 	h.Set("x-iterm2-library-version", "go 3.6")
 	h.Set("x-iterm2-disable-auth-ui", "true")
-	if cookie := os.Getenv("ITERM2_COOKIE"); cookie != "" {
+	// Disable using env var cookie due to
+	if cookie := os.Getenv("ITERM2_COOKIE"); cookie != "" && false {
 		h.Set("x-iterm2-cookie", cookie)
 	} else {
 		resp, err := mack.Tell("iTerm2", fmt.Sprintf("request cookie and key for app named %q", appName))
@@ -56,7 +75,7 @@ func New(appName string) (*Client, error) {
 	}
 	c, resp, err := d.Dial("ws://localhost", h)
 	if err != nil && resp != nil {
-		b, _ := ioutil.ReadAll(resp.Body)
+		b, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("error connecting to iTerm2: %v - body: %s", err, b)
 	}
 	if err != nil {
