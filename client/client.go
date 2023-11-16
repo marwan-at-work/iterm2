@@ -48,7 +48,7 @@ func newClient(appName, cookie string) (*Client, error) {
 	h.Set("x-iterm2-library-version", "go 3.6")
 	h.Set("x-iterm2-disable-auth-ui", "true")
 	// Disable using env var cookie due to
-	if cookie := os.Getenv("ITERM2_COOKIE"); cookie != "" && false {
+	if cookie := os.Getenv("ITERM2_COOKIE"); cookie != "" {
 		h.Set("x-iterm2-cookie", cookie)
 	} else {
 		resp, err := mack.Tell("iTerm2", fmt.Sprintf("request cookie and key for app named %q", appName))
