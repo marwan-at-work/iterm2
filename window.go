@@ -13,6 +13,7 @@ type Window interface {
 	SetTitle(s string) error
 	CreateTab() (Tab, error)
 	ListTabs() ([]Tab, error)
+	Activate() error
 }
 
 type window struct {
@@ -80,6 +81,17 @@ func (w *window) SetTitle(s string) error {
 				},
 			},
 		},
+	})
+	return err
+}
+
+func (w *window) Activate() error {
+	t := true
+	_, err := w.c.Call(&api.ClientOriginatedMessage{
+		Submessage: &api.ClientOriginatedMessage_ActivateRequest{ActivateRequest: &api.ActivateRequest{
+			Identifier:       &api.ActivateRequest_WindowId{WindowId: w.id},
+			OrderWindowFront: &t,
+		}},
 	})
 	return err
 }
