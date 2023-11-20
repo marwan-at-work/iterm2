@@ -86,11 +86,10 @@ func (w *window) SetTitle(s string) error {
 }
 
 func (w *window) Activate() error {
-	t := true
 	_, err := w.c.Call(&api.ClientOriginatedMessage{
 		Submessage: &api.ClientOriginatedMessage_ActivateRequest{ActivateRequest: &api.ActivateRequest{
 			Identifier:       &api.ActivateRequest_WindowId{WindowId: w.id},
-			OrderWindowFront: &t,
+			OrderWindowFront: b(true),
 		}},
 	})
 	return err

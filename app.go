@@ -100,6 +100,10 @@ func str(s string) *string {
 	return &s
 }
 
+func b(b bool) *bool {
+	return &b
+}
+
 func (a *app) SelectMenuItem(item string) error {
 	resp, err := a.c.Call(&api.ClientOriginatedMessage{
 		Submessage: &api.ClientOriginatedMessage_MenuItemRequest{
