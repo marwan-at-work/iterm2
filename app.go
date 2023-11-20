@@ -38,12 +38,10 @@ type app struct {
 	c *client.Client
 }
 
-func (w *app) Activate(raiseAllWindows bool, ignoreOtherApps bool) error {
-
-	t := true
-	_, err := w.c.Call(&api.ClientOriginatedMessage{
+func (a *app) Activate(raiseAllWindows bool, ignoreOtherApps bool) error {
+	_, err := a.c.Call(&api.ClientOriginatedMessage{
 		Submessage: &api.ClientOriginatedMessage_ActivateRequest{ActivateRequest: &api.ActivateRequest{
-			OrderWindowFront: &t,
+			OrderWindowFront: b(true),
 			ActivateApp: &api.ActivateRequest_App{
 				RaiseAllWindows:   &raiseAllWindows,
 				IgnoringOtherApps: &ignoreOtherApps,
