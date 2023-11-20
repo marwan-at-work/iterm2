@@ -15,7 +15,7 @@ type App interface {
 	CreateWindow() (Window, error)
 	ListWindows() ([]Window, error)
 	SelectMenuItem(item string) error
-	Activate(raiseAllWindows bool, ignoreOtherApps bool) error
+	Activate(raiseAllWindows, ignoreOtherApps bool) error
 }
 
 // NewApp establishes a connection
