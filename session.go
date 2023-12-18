@@ -10,6 +10,8 @@ import (
 // Session represents an iTerm2 Session which is a pane
 // within a Tab where the terminal is active
 type Session interface {
+	// Inject injects bytes as input to the terminal, as though the running program had produced them.
+	Inject(b []byte) error
 	SendText(s string) error
 	Activate(selectTab, orderWindowFront bool) error
 	SplitPane(opts SplitPaneOptions) (Session, error)
@@ -25,6 +27,24 @@ type SplitPaneOptions struct {
 type session struct {
 	c  *client.Client
 	id string
+}
+
+func (s *session) Inject(b []byte) error {
+	resp, err := s.c.Call(&api.ClientOriginatedMessage{
+		Submessage: &api.ClientOriginatedMessage_InjectRequest{
+			InjectRequest: &api.InjectRequest{
+				SessionId: []string{s.id},
+				Data:      b,
+			},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("error sending text to session %q: %w", s.id, err)
+	}
+	if status := resp.GetInjectResponse().GetStatus(); len(status) != 1 || status[0] != api.InjectResponse_OK {
+		return fmt.Errorf("unexpected status for session %q: %v", s.id, status)
+	}
+	return nil
 }
 
 func (s *session) SendText(t string) error {
