@@ -15,6 +15,7 @@ type App interface {
 	CreateWindow() (Window, error)
 	ListWindows() ([]Window, error)
 	SelectMenuItem(item string) error
+	Activate(raiseAllWindows, ignoreOtherApps bool) error
 }
 
 // NewApp establishes a connection
@@ -35,6 +36,19 @@ func NewApp(name string) (App, error) {
 
 type app struct {
 	c *client.Client
+}
+
+func (a *app) Activate(raiseAllWindows bool, ignoreOtherApps bool) error {
+	_, err := a.c.Call(&api.ClientOriginatedMessage{
+		Submessage: &api.ClientOriginatedMessage_ActivateRequest{ActivateRequest: &api.ActivateRequest{
+			OrderWindowFront: b(true),
+			ActivateApp: &api.ActivateRequest_App{
+				RaiseAllWindows:   &raiseAllWindows,
+				IgnoringOtherApps: &ignoreOtherApps,
+			},
+		}},
+	})
+	return err
 }
 
 func (a *app) CreateWindow() (Window, error) {
@@ -82,6 +96,10 @@ func (a *app) Close() error {
 
 func str(s string) *string {
 	return &s
+}
+
+func b(b bool) *bool {
+	return &b
 }
 
 func (a *app) SelectMenuItem(item string) error {
